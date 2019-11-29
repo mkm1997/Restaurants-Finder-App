@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/js/bootstrap-datetimepicker.min.js"></script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_b7GV_WdV5s84S29y4I91e9tE_LUkPFU&callback=initMap">
+</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        /* Set the size of the div element that contains the map */
+        #map {
+            height: 400px;  /* The height is 400 pixels */
+            width: 100%;  /* The width is the width of the web page */
+        }
+    </style>
+</head>
+<body  style="background-color:#0069ff;" >
+<div class="container-fluid" align="center">
+
+
+    <div class = "container" align="center" style="background-color:white;width:95%;height:800px;margin-top:10px;border-radius: 5px;">
+    <br>
+    <br>
+
+        <a href="{%url 'home'%}" type="button" class="btn btn-success" ><- &nbsp;Return to Restaurant List </a>
+        <div id="map" style="margin-top: 20px;margin-bottom: 20px"></div>
+
+        <div class="container" id="info" style="text-align: justify;font-size: 15px;font-weight: bold">
+        <p id="ccode"></p>
+        <p id = "city"></p>
+        <p id="address"></p>
+        <p id ="locality"></p>
+        <p id="locality_verb"></p>
+    </div>
+    </div>
+
+</div>
+
+
+<script>
+    // Initialize and add the map
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split('&');
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split('=');
+            if (decodeURIComponent(pair[0]) == variable) {
+                return decodeURIComponent(pair[1]);
+            }
+        }
+        console.log('Query variable %s not found', variable);
+    }
+    console.log(getQueryVariable("id"));
+
+    $(document).ready(function () {
+
+        console.log()
+        $.ajax({
+            url: "http://127.0.0.1:8000/api/location/?id="+getQueryVariable("id"),
+            type: "GET",
+            dataType: 'json',
+            success: function (result) {
+                console.log(result[0].latitude,result[0].longitude);
+                initMap(result[0].latitude,result[0].longitude)
+                var d = "<h3 id=\"ccode\">Country Code: "+result[0].country_code+"</h3>\n" +
+                    "        <h3 id = \"city\">City: "+result[0].city+"</h3>\n" +
+                    "        <h3 id=\"address\">Address: "+result[0].address+"</h3>\n" +
+                    "        <h3 id =\"locality\">Locality: "+result[0].locality+"</h3>\n" +
+                    "        <h3 id=\"locality_verb\">Locality Verb"+result[0].locality_verb+"</h3>";
+                $("#info").append(d);
+
+            },
+            error: function (e) {
+                console.log(e);
+                alert(e);
+            }, async: false,
+        });
+    });
+
+    function initMap(a,b) {
+        // The location of Uluru
+        if(a && b){
+            console.log("hello");
+            var uluru = {lat: parseFloat(a), lng: parseFloat(b)};
+            // The map, centered at Uluru
+
+            var map = new google.maps.Map(
+                document.getElementById('map'), {zoom: 15, center: uluru});
+
+            var marker = new google.maps.Marker({position: uluru, map: map});
+        }
+    }
+
+</script>
+
+
+</body>
+</html>

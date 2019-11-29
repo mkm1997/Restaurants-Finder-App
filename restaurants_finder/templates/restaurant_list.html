@@ -1,0 +1,277 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Restaurants Finder</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/css/bootstrap-datetimepicker.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <style>
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    td, th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #dddddd;
+    }
+  </style>
+
+
+</head>
+<body style="background-color:#0069ff;">
+
+<div class="container-fluid" align="center">
+
+
+  <div class = "container" align="center" style="background-color:white;width:95%;margin-top:50px;border-radius: 5px;">
+    <br>
+    <p style="color:Red">Restaurants Listing App</p>
+
+    <!--    <p style="color:blue;font-size: 15px">Restaurants List</p>-->
+    <div class="container">
+
+      <div class="row">
+
+        <div class="col-md-5">
+
+          <span style="font-weight: bold;font-size: 12px">Sort By &nbsp; &nbsp;
+          <div class="radio-inline">
+            <label><input type="radio" name="optradio" value="votes">Vote</label>
+          </div>
+          <div class="radio-inline">
+            <label><input type="radio" name="optradio" value="agg_rating">Rating</label>
+          </div>
+          <div class="radio-inline">
+            <label><input type="radio" name="optradio" value="avg_cost_for_two">Average Cost for two</label>
+          </div>
+            </span>
+
+        </div>
+        <div class="col-md-4">
+          <span>
+              <select data-placeholder="What you want" multiple class="chosen-select" name="test1" id ="want">
+                <option value=""></option>
+                {%for i in cuisines%}
+
+                <option value="{{i}}">{{i}}</option>
+                {%endfor%}
+              </select>
+
+            <button type="button" class="btn btn-success" id="cus">Filter Cuisine</button>
+          </span>
+
+        </div>
+
+
+
+        <div class="col-md-3 pull-right">
+          <div class="search-container">
+            <input type="text" placeholder="Search by name.." name="search" id="by_name">
+            <button type="submit" class="btn btn-primary" id="search_by_name"><i class="fa fa-search"></i></button>
+          </div>
+        </div>
+      </div>
+      <br>
+      <br>
+
+      <div class="row" id="tab" >
+        <div class="table-responsive" style="width: 100%;font-size: 10px">
+          <div align="center" id ="count">
+
+          </div>
+          <br>
+          <br>
+          <table class="table" style="font-size: 12px" id="t_raw">
+            <thead>
+            <tr>
+              <th scope="col">Restaurants Id </th>
+              <th scope="col">Restaurants Name </th>
+              <th scope="col">Cuisines</th>
+              <th scope="col">Average cost for two</th>
+              <th scope="col">Currency</th>
+              <th scope="col">Has Table Booking</th>
+              <th scope="col">Has Online Delivery</th>
+              <th scope="col">Aggregate rating</th>
+              <th scope="col">Rating Color</th>
+              <th scope="col">Rating Text</th>
+              <th scope="col">Rating Votes</th>
+              <th scope="col">Location</th>
+            </tr>
+            </thead>
+
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  function f(data){
+    if(data === "Darak Green")
+    {
+      return "darkgreen"
+    }else{
+      return data
+    }
+  }
+  $(document).ready(function () {
+
+    $(".chosen-select").select2({
+      placeholder: 'Select an option',
+      maximumSelectionLength: 100,
+
+
+    });
+
+    $("#cus").click(function () {
+
+      var want =  $('#want option:selected').toArray().map(item => item.value);
+
+      console.log("houuu",$(this).val());
+      $("tbody").remove();
+      $.ajax({
+        url : "http://127.0.0.1:8000/api/getrestaurants/?name="+$("#by_name").val() +"&sort="+$(this).val() + "&cuisine="+want,
+        type : "GET",
+        dataType: 'json',
+        success:function (result) {
+          console.log("hello",result);
+          $("#count").append('<p style="font-size: 15px">Count is :' + result.length+'</p>');
+          $.each(result,function (i,obj) {
+            console.log(result);
+            count=count+1;
+            var a = "<tbody><tr id ='"+count+"' class = 'list_row'  ><td>"+obj.restaurant_id+"</td><td>"+obj.restaurant_name+ "</td>" +
+                    "<td>"+obj.cuisines+"</td><td>"+obj.avg_cost_for_two+"</td><td>"+obj.currency+"</td><td>"+obj.has_table_booking+"</td>" +
+                    "<td>"+obj.has_online_booking+"</td><td>"+obj.agg_rating+"</td><td><p style='background-color:"+obj.rating_color+";border-radius: 20px;height: 40px;width: 40px'></p></td><td>"+obj.rating_text+"</td><td>"+obj.votes+"</td>" +
+                    "<td ><button class='btn btn-primary' onclick='fun("+obj.restaurant_id+")'>Get Location</button></td></tr></tbody>";
+            $("#t_raw").append(a);
+          });
+        },
+        error:function (e) {
+          console.log(e);
+          alert(e);
+        },async:false,
+      });
+
+    });
+
+
+    var count = 0;
+    $.ajax({
+      url : "http://127.0.0.1:8000/api/getrestaurants/",
+      type : "GET",
+      dataType: 'json',
+      success:function (result) {
+        console.log("hello",result);
+        $.each(result,function (i,obj) {
+          console.log(result);
+          count=count+1;
+          var a = "<tbody><tr id ='"+count+"' class = 'list_row'  ><td>"+obj.restaurant_id+"</td><td>"+obj.restaurant_name+ "</td>" +
+                  "<td>"+obj.cuisines+"</td><td>"+obj.avg_cost_for_two+"</td><td>"+obj.currency+"</td><td>"+obj.has_table_booking+"</td>" +
+                  "<td>"+obj.has_online_booking+"</td><td>"+obj.agg_rating+"</td><td><p style='background-color:"+obj.rating_color+";border-radius: 20px;height: 40px;width: 40px'></p></td><td>"+obj.rating_text+"</td><td>"+obj.votes+"</td>" +
+                  "<td ><button class='btn btn-primary' onclick='fun("+obj.restaurant_id+")'>Get Location</button></td></tr></tbody>";
+          $("#t_raw").append(a);
+        });
+      },
+      error:function (e) {
+        console.log(e);
+        alert(e);
+      },async:false,
+    });
+
+    $("#search_by_name").click(function (e) {
+      var want =  $('#want option:selected').toArray().map(item => item.value);
+      $("tbody").remove();
+      $.ajax({
+        url : "http://127.0.0.1:8000/api/getrestaurants/?name="+$("#by_name").val() + "&sort="+$('input[name=optradio]:checked').val()+"&cuisine="+want,
+        type : "GET",
+        dataType: 'json',
+        success:function (result) {
+          console.log("hello",result);
+          $.each(result,function (i,obj) {
+            console.log(result);
+            count=count+1;
+            var a = "<tbody><tr id ='"+count+"' class = 'list_row'  ><td>"+obj.restaurant_id+"</td><td>"+obj.restaurant_name+ "</td>" +
+                    "<td>"+obj.cuisines+"</td><td>"+obj.avg_cost_for_two+"</td><td>"+obj.currency+"</td><td>"+obj.has_table_booking+"</td>" +
+                    "<td>"+obj.has_online_booking+"</td><td>"+obj.agg_rating+"</td><td><p style='background-color:"+obj.rating_color+";border-radius: 20px;height: 40px;width: 40px'></p></td><td>"+obj.rating_text+"</td><td>"+obj.votes+"</td>" +
+                    "<td ><button class='btn btn-primary' onclick='fun("+obj.restaurant_id+")'>Get Location</button></td></tr></tbody>";
+            $("#t_raw").append(a);
+          });
+        },
+        error:function (e) {
+          console.log(e);
+          alert(e);
+        },async:false,
+      });
+
+    });
+    $('input:radio').change(function(e) {
+
+      console.log("houuu",$(this).val());
+       var want =  $('#want option:selected').toArray().map(item => item.value);
+      $("tbody").remove();
+      $.ajax({
+        url : "http://127.0.0.1:8000/api/getrestaurants/?name="+$("#by_name").val() +"&sort="+$(this).val()+"&cuisine="+want,
+        type : "GET",
+        dataType: 'json',
+        success:function (result) {
+          console.log("hello",result);
+          $.each(result,function (i,obj) {
+            console.log(result);
+            count=count+1;
+            var a = "<tbody><tr id ='"+count+"' class = 'list_row'  ><td>"+obj.restaurant_id+"</td><td>"+obj.restaurant_name+ "</td>" +
+                    "<td>"+obj.cuisines+"</td><td>"+obj.avg_cost_for_two+"</td><td>"+obj.currency+"</td><td>"+obj.has_table_booking+"</td>" +
+                    "<td>"+obj.has_online_booking+"</td><td>"+obj.agg_rating+"</td><td><p style='background-color:"+obj.rating_color+";border-radius: 20px;height: 40px;width: 40px'></p></td><td>"+obj.rating_text+"</td><td>"+obj.votes+"</td>" +
+                    "<td ><button class='btn btn-primary' onclick='fun("+obj.restaurant_id+")'>Get Location</button></td></tr></tbody>";
+            $("#t_raw").append(a);
+          });
+        },
+        error:function (e) {
+          console.log(e);
+          alert(e);
+        },async:false,
+      });
+
+
+    });
+
+
+  });
+
+  function fun(obj) {
+    window.location = "http://127.0.0.1:8000/api/showmap/?id="+obj;
+
+  }
+
+</script>
+
+
+</body>
+</html>
+
+
